@@ -76,6 +76,44 @@ create table meetings_attendance (
   meetings_id bigint references meetings(id) on delete cascade,
   saints_id bigint references saints(id) on delete cascade
 );
+
+-- Enable Row Level Security (RLS) on all tables
+ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE saints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE saints_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meetings_attendance ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies: Allow authenticated users full access to all tables
+CREATE POLICY "Allow authenticated users full access to tags"
+ON tags FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users full access to saints"
+ON saints FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users full access to meetings"
+ON meetings FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users full access to saints_tags"
+ON saints_tags FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated users full access to meetings_attendance"
+ON meetings_attendance FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
 ```
 
 ### Installation
