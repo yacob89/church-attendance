@@ -92,13 +92,21 @@ create table meetings_attendance (
     ```
 
 3.  **Configure Supabase**:
-    Open `lib/core/constants/supabase_constants.dart` and add your credentials:
-    ```dart
-    class SupabaseConstants {
-      static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-      static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
-    }
+    Create a `.env` file in the root directory of the project (copy from `.env.example`):
+    ```bash
+    cp .env.example .env
     ```
+    Then edit `.env` and add your Supabase credentials:
+    ```
+    SUPABASE_URL=your_supabase_project_url
+    SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
+
+    You can find these values in your Supabase project dashboard:
+    - Go to **Project Settings** > **API**
+    - Copy the **Project URL** and **anon/public** key
+
+    **Important**: The `.env` file is already added to `.gitignore` and should never be committed to version control.
 
 4.  **Run the app**:
     ```bash
