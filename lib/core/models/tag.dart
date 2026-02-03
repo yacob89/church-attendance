@@ -1,7 +1,15 @@
+enum TagType {
+  saints,
+  meeting;
+
+  String toJson() => name;
+  static TagType fromJson(String json) => values.byName(json);
+}
+
 class Tag {
   final int? id;
   final DateTime? createdAt;
-  final String type;
+  final TagType type;
   final String name;
 
   Tag({this.id, this.createdAt, required this.type, required this.name});
@@ -12,7 +20,7 @@ class Tag {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
-      type: json['type'] as String,
+      type: TagType.fromJson(json['type'] as String),
       name: json['name'] as String,
     );
   }
@@ -21,7 +29,7 @@ class Tag {
     return {
       if (id != null) 'id': id,
       // created_at is usually handled by Supabase default
-      'type': type,
+      'type': type.toJson(),
       'name': name,
     };
   }
