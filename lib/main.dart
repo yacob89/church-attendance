@@ -4,6 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'core/constants/supabase_constants.dart';
+import 'features/dashboard/dashboard_page.dart';
+import 'features/dashboard/scaffold_with_navbar.dart';
 import 'features/tags/tags_list_page.dart';
 import 'features/tags/tag_edit_page.dart';
 import 'features/saints/saints_list_page.dart';
@@ -32,8 +34,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<AuthState> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
-          (AuthState _) => notifyListeners(),
-        );
+      (AuthState _) => notifyListeners(),
+    );
   }
 
   late final StreamSubscription<AuthState> _subscription;
@@ -45,63 +47,93 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final _router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
-  refreshListenable: GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
+  refreshListenable: GoRouterRefreshStream(
+    Supabase.instance.client.auth.onAuthStateChange,
+  ),
   routes: [
     GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const HomePage(),
-      routes: [
-        GoRoute(
-          path: 'tags',
-          builder: (context, state) => const TagsListPage(),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return ScaffoldWithNavBar(navigationShell: navigationShell);
+      },
+      branches: [
+        // Home Branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'new',
-              builder: (context, state) => const TagEditPage(),
-            ),
-            GoRoute(
-              path: ':id',
-              builder: (context, state) {
-                final tag = state.extra as Tag?;
-                return TagEditPage(tag: tag);
-              },
+              path: '/',
+              builder: (context, state) => const DashboardPage(),
             ),
           ],
         ),
-        GoRoute(
-          path: 'saints',
-          builder: (context, state) => const SaintsListPage(),
+        // Saints Branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'new',
-              builder: (context, state) => const SaintEditPage(),
-            ),
-            GoRoute(
-              path: ':id',
-              builder: (context, state) {
-                final saint = state.extra as Saint?;
-                return SaintEditPage(saint: saint);
-              },
+              path: '/saints',
+              builder: (context, state) => const SaintsListPage(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => const SaintEditPage(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final saint = state.extra as Saint?;
+                    return SaintEditPage(saint: saint);
+                  },
+                ),
+              ],
             ),
           ],
         ),
-        GoRoute(
-          path: 'meetings',
-          builder: (context, state) => const MeetingsListPage(),
+        // Meetings Branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'new',
-              builder: (context, state) => const MeetingEditPage(),
+              path: '/meetings',
+              builder: (context, state) => const MeetingsListPage(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => const MeetingEditPage(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final meeting = state.extra as Meeting?;
+                    return MeetingEditPage(meeting: meeting);
+                  },
+                ),
+              ],
             ),
+          ],
+        ),
+        // Tags Branch
+        StatefulShellBranch(
+          routes: [
             GoRoute(
-              path: ':id',
-              builder: (context, state) {
-                final meeting = state.extra as Meeting?;
-                return MeetingEditPage(meeting: meeting);
-              },
+              path: '/tags',
+              builder: (context, state) => const TagsListPage(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => const TagEditPage(),
+                ),
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final tag = state.extra as Tag?;
+                    return TagEditPage(tag: tag);
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -218,65 +250,6 @@ class _LoginPageState extends State<LoginPage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            onPressed: () => Supabase.instance.client.auth.signOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(child: Text('Church Attendance')),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                context.go('/');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Saints'),
-              onTap: () {
-                context.go('/saints');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('Meetings'),
-              onTap: () {
-                context.go('/meetings');
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.label),
-              title: const Text('Tags'),
-              onTap: () {
-                context.go('/tags');
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-      body: const Center(child: Text('Welcome to Church Attendance')),
     );
   }
 }
