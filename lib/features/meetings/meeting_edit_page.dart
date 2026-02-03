@@ -212,7 +212,7 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                 );
                 if (confirm == true) {
                   await _meetingsRepository.deleteMeeting(widget.meeting!.id!);
-                  if (context.mounted) context.go('/meetings');
+                  if (context.mounted) context.pop();
                 }
               },
             ),

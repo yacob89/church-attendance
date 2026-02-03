@@ -23,11 +23,13 @@ class _MeetingsListPageState extends State<MeetingsListPage> {
     _loadMeetings();
   }
 
-  Future<void> _loadMeetings() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadMeetings({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final meetings = await _repository.getMeetings();
       if (mounted) {
@@ -51,29 +53,57 @@ class _MeetingsListPageState extends State<MeetingsListPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Meetings')),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/meetings/new'),
+        onPressed: () async {
+          await context.push('/meetings/new');
+          _loadMeetings(showLoading: false);
+        },
         child: const Icon(Icons.add),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : _meetings.isEmpty
-          ? const Center(child: Text('No meetings found'))
-          : ListView.builder(
-              itemCount: _meetings.length,
-              itemBuilder: (context, index) {
-                final meeting = _meetings[index];
-                final dateStr = meeting.meetingDate != null
-                    ? DateFormat.yMMMd().format(meeting.meetingDate!)
-                    : 'No date';
-                return ListTile(
-                  title: Text(meeting.name),
-                  subtitle: Text(dateStr),
-                  onTap: () =>
-                      context.go('/meetings/${meeting.id}', extra: meeting),
-                );
-              },
+          : RefreshIndicator(
+              onRefresh: () => _loadMeetings(showLoading: false),
+              child: _error != null
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: Center(child: Text('Error: $_error')),
+                        ),
+                      ],
+                    )
+                  : _meetings.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: const Center(child: Text('No meetings found')),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: _meetings.length,
+                      itemBuilder: (context, index) {
+                        final meeting = _meetings[index];
+                        final dateStr = meeting.meetingDate != null
+                            ? DateFormat.yMMMd().format(meeting.meetingDate!)
+                            : 'No date';
+                        return ListTile(
+                          title: Text(meeting.name),
+                          subtitle: Text(dateStr),
+                          onTap: () async {
+                            await context.push(
+                              '/meetings/${meeting.id}',
+                              extra: meeting,
+                            );
+                            _loadMeetings(showLoading: false);
+                          },
+                        );
+                      },
+                    ),
             ),
     );
   }

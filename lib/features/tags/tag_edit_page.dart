@@ -54,7 +54,7 @@ class _TagEditPageState extends State<TagEditPage> {
       }
 
       if (mounted) {
-        context.go('/tags');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {

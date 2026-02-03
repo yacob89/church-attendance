@@ -93,7 +93,7 @@ class _SaintEditPageState extends State<SaintEditPage> {
       await _saintsRepository.updateSaintTags(saintId, _selectedTagIds);
 
       if (mounted) {
-        context.go('/saints');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {
@@ -140,7 +140,7 @@ class _SaintEditPageState extends State<SaintEditPage> {
                 if (confirm == true) {
                   await _saintsRepository.deleteSaint(widget.saint!.id!);
                   if (context.mounted) {
-                    context.go('/saints');
+                    context.pop();
                   }
                 }
               },

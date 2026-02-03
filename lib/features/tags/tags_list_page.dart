@@ -22,11 +22,13 @@ class _TagsListPageState extends State<TagsListPage> {
     _loadTags();
   }
 
-  Future<void> _loadTags() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadTags({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final tags = await _repository.getTags();
       if (mounted) {
@@ -48,7 +50,7 @@ class _TagsListPageState extends State<TagsListPage> {
   Future<void> _deleteTag(int id) async {
     try {
       await _repository.deleteTag(id);
-      _loadTags();
+      _loadTags(showLoading: false);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -63,29 +65,55 @@ class _TagsListPageState extends State<TagsListPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Tags')),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/tags/new'),
+        onPressed: () async {
+          await context.push('/tags/new');
+          _loadTags(showLoading: false);
+        },
         child: const Icon(Icons.add),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : _tags.isEmpty
-          ? const Center(child: Text('No tags found'))
-          : ListView.builder(
-              itemCount: _tags.length,
-              itemBuilder: (context, index) {
-                final tag = _tags[index];
-                return ListTile(
-                  title: Text(tag.name),
-                  subtitle: Text(tag.type),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => _deleteTag(tag.id!),
-                  ),
-                  onTap: () => context.go('/tags/${tag.id}', extra: tag),
-                );
-              },
+          : RefreshIndicator(
+              onRefresh: () => _loadTags(showLoading: false),
+              child: _error != null
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: Center(child: Text('Error: $_error')),
+                        ),
+                      ],
+                    )
+                  : _tags.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: const Center(child: Text('No tags found')),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: _tags.length,
+                      itemBuilder: (context, index) {
+                        final tag = _tags[index];
+                        return ListTile(
+                          title: Text(tag.name),
+                          subtitle: Text(tag.type),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _deleteTag(tag.id!),
+                          ),
+                          onTap: () async {
+                            await context.push('/tags/${tag.id}', extra: tag);
+                            _loadTags(showLoading: false);
+                          },
+                        );
+                      },
+                    ),
             ),
     );
   }
