@@ -111,7 +111,7 @@ class _SaintEditPageState extends State<SaintEditPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.saint == null ? 'New Saint' : 'Edit Saint'),
@@ -138,7 +138,8 @@ class _SaintEditPageState extends State<SaintEditPage> {
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
                         style: TextButton.styleFrom(
-                            foregroundColor: theme.colorScheme.error),
+                          foregroundColor: theme.colorScheme.error,
+                        ),
                         child: const Text('Delete'),
                       ),
                     ],
@@ -160,7 +161,8 @@ class _SaintEditPageState extends State<SaintEditPage> {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2))
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : const Icon(Icons.save),
         label: Text(_isLoading ? 'Saving...' : 'Save Saint'),
       ),
@@ -261,34 +263,44 @@ class _SaintEditPageState extends State<SaintEditPage> {
                     ),
                     const SizedBox(height: 8),
                     if (_allTags.isEmpty)
-                      Text('No tags available', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant))
+                      Text(
+                        'No tags available',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      )
                     else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _allTags.map((tag) {
-                        final isSelected = _selectedTagIds.contains(tag.id);
-                        return FilterChip(
-                          label: Text(tag.name),
-                          selected: isSelected,
-                          checkmarkColor: theme.colorScheme.onPrimaryContainer,
-                          selectedColor: theme.colorScheme.primaryContainer,
-                          labelStyle: TextStyle(
-                            color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedTagIds.add(tag.id!);
-                              } else {
-                                _selectedTagIds.remove(tag.id);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _allTags.map((tag) {
+                          final isSelected = _selectedTagIds.contains(tag.id);
+                          return FilterChip(
+                            label: Text(tag.name),
+                            selected: isSelected,
+                            checkmarkColor:
+                                theme.colorScheme.onPrimaryContainer,
+                            selectedColor: theme.colorScheme.primaryContainer,
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? theme.colorScheme.onPrimaryContainer
+                                  : theme.colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedTagIds.add(tag.id!);
+                                } else {
+                                  _selectedTagIds.remove(tag.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
                     const SizedBox(height: 80),
                   ],
                 ),

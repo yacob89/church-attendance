@@ -6,7 +6,10 @@ class SaintsRepository {
   final SupabaseClient _client = Supabase.instance.client;
 
   Future<List<Saint>> getSaints() async {
-    final response = await _client.from('saints').select().order('name');
+    final response = await _client
+        .from('saints')
+        .select('*, saints_tags(tags(*))')
+        .order('name');
     final data = response as List<dynamic>;
     return data.map((json) => Saint.fromJson(json)).toList();
   }

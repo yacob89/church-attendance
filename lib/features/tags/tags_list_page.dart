@@ -60,106 +60,142 @@ class _TagsListPageState extends State<TagsListPage> {
     }
   }
 
+  Future<void> _confirmDelete(Tag tag) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Tag'),
+        content: Text('Are you sure you want to delete "${tag.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && tag.id != null) {
+      _deleteTag(tag.id!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    // Group tags
-    final saintsTags = _tags.where((t) => t.type == TagType.saints).toList();
-    final meetingTags = _tags.where((t) => t.type == TagType.meeting).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tags'),
-        centerTitle: false,
+    // Group and sort tags
+    final saintsTags = _tags.where((t) => t.type == TagType.saints).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final meetingTags = _tags.where((t) => t.type == TagType.meeting).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Tags'),
+          centerTitle: false,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Saints'),
+              Tab(text: 'Meetings'),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            await context.push('/tags/new');
+            _loadTags(showLoading: false);
+          },
+          child: const Icon(Icons.add),
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Error: $_error', style: theme.textTheme.bodyLarge),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => _loadTags(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : TabBarView(
+                children: [
+                  _buildTagList(
+                    context,
+                    saintsTags,
+                    'No saints tags found',
+                    theme,
+                  ),
+                  _buildTagList(
+                    context,
+                    meetingTags,
+                    'No meeting tags found',
+                    theme,
+                  ),
+                ],
+              ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await context.push('/tags/new');
-          _loadTags(showLoading: false);
-        },
-        child: const Icon(Icons.add),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => _loadTags(showLoading: false),
-              child: _error != null
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
+    );
+  }
+
+  Widget _buildTagList(
+    BuildContext context,
+    List<Tag> tags,
+    String emptyMessage,
+    ThemeData theme,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () => _loadTags(showLoading: false),
+      child: tags.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.7,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.error_outline,
-                                    size: 48, color: theme.colorScheme.error),
-                                const SizedBox(height: 16),
-                                Text('Error: $_error',
-                                    style: theme.textTheme.bodyLarge),
-                              ],
-                            ),
-                          ),
+                        Icon(
+                          Icons.label_off,
+                          size: 64,
+                          color: theme.colorScheme.secondary,
                         ),
+                        const SizedBox(height: 16),
+                        Text(emptyMessage, style: theme.textTheme.titleMedium),
                       ],
-                    )
-                  : _tags.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.7,
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.label_off,
-                                        size: 64,
-                                        color: theme.colorScheme.secondary),
-                                    const SizedBox(height: 16),
-                                    Text('No tags found',
-                                        style: theme.textTheme.titleMedium),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            if (saintsTags.isNotEmpty) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  'Saints Tags',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              ...saintsTags.map((tag) => _buildTagItem(context, tag, theme)),
-                              const SizedBox(height: 16),
-                            ],
-                            if (meetingTags.isNotEmpty) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  'Meeting Tags',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              ...meetingTags.map((tag) => _buildTagItem(context, tag, theme)),
-                            ],
-                          ],
-                        ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: tags.length,
+              itemBuilder: (context, index) {
+                return _buildTagItem(context, tags[index], theme);
+              },
             ),
     );
   }
@@ -176,12 +212,14 @@ class _TagsListPageState extends State<TagsListPage> {
         ),
         title: Text(
           tag.name,
-          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, size: 20),
           color: theme.colorScheme.onSurfaceVariant,
-          onPressed: () => _deleteTag(tag.id!),
+          onPressed: () => _confirmDelete(tag),
         ),
         onTap: () async {
           await context.push('/tags/${tag.id}', extra: tag);

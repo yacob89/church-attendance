@@ -208,7 +208,8 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                     builder: (context) => AlertDialog(
                       title: const Text('Delete Meeting'),
                       content: const Text(
-                          'Are you sure you want to delete this meeting? This action cannot be undone.'),
+                        'Are you sure you want to delete this meeting? This action cannot be undone.',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
@@ -217,14 +218,17 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.error),
+                            foregroundColor: theme.colorScheme.error,
+                          ),
                           child: const Text('Delete'),
                         ),
                       ],
                     ),
                   );
                   if (confirm == true) {
-                    await _meetingsRepository.deleteMeeting(widget.meeting!.id!);
+                    await _meetingsRepository.deleteMeeting(
+                      widget.meeting!.id!,
+                    );
                     if (context.mounted) context.pop();
                   }
                 },
@@ -237,18 +241,22 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                 controller: _tabController,
                 children: [
                   // Tab 1: Details
-                  Scaffold( // Nested Scaffold for FAB
+                  Scaffold(
+                    // Nested Scaffold for FAB
                     floatingActionButton: FloatingActionButton.extended(
                       onPressed: _isLoading ? null : _saveDetails,
                       icon: _isLoading
                           ? const SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2))
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : Icon(_isNew ? Icons.check : Icons.save),
-                      label: Text(_isLoading
-                          ? 'Saving...'
-                          : (_isNew ? 'Create Meeting' : 'Update Details')),
+                      label: Text(
+                        _isLoading
+                            ? 'Saving...'
+                            : (_isNew ? 'Create Meeting' : 'Update Details'),
+                      ),
                     ),
                     body: SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
@@ -319,13 +327,16 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                   // Tab 2: Attendance (Only if not new)
                   if (!_isNew)
                     Scaffold(
-                       floatingActionButton: FloatingActionButton.extended(
+                      floatingActionButton: FloatingActionButton.extended(
                         onPressed: _isLoading ? null : _saveAttendance,
                         icon: _isLoading
                             ? const SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2))
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Icon(Icons.save),
                         label: const Text('Save Attendance'),
                       ),
@@ -343,9 +354,12 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 0),
+                                  horizontal: 20,
+                                  vertical: 0,
+                                ),
                                 filled: true,
-                                fillColor: theme.colorScheme.surfaceContainerHighest,
+                                fillColor:
+                                    theme.colorScheme.surfaceContainerHighest,
                               ),
                               onChanged: (val) =>
                                   setState(() => _filter = val.toLowerCase()),
@@ -358,38 +372,49 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                               itemBuilder: (context, index) {
                                 final saint = _allSaints[index];
                                 if (_filter.isNotEmpty &&
-                                    !saint.name.toLowerCase().contains(_filter)) {
+                                    !saint.name.toLowerCase().contains(
+                                      _filter,
+                                    )) {
                                   return const SizedBox.shrink();
                                 }
 
                                 final isPresent = _attendedSaintIds.contains(
                                   saint.id,
                                 );
-                                
+
                                 return Card(
                                   elevation: 0,
-                                  color: isPresent 
-                                    ? theme.colorScheme.primaryContainer.withOpacity(0.5)
-                                    : theme.colorScheme.surfaceContainerLow,
+                                  color: isPresent
+                                      ? theme.colorScheme.primaryContainer
+                                            .withOpacity(0.5)
+                                      : theme.colorScheme.surfaceContainerLow,
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: CheckboxListTile(
                                     title: Text(
                                       saint.name,
                                       style: TextStyle(
-                                        fontWeight: isPresent ? FontWeight.bold : FontWeight.normal,
+                                        fontWeight: isPresent
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                       ),
                                     ),
                                     subtitle: saint.city != null
                                         ? Text(saint.city!)
                                         : null,
                                     secondary: CircleAvatar(
-                                      backgroundColor: isPresent 
-                                        ? theme.colorScheme.primary 
-                                        : theme.colorScheme.surfaceContainerHighest,
-                                      foregroundColor: isPresent 
-                                        ? theme.colorScheme.onPrimary 
-                                        : theme.colorScheme.onSurfaceVariant,
-                                      child: Text(saint.name.isNotEmpty ? saint.name[0].toUpperCase() : '?'),
+                                      backgroundColor: isPresent
+                                          ? theme.colorScheme.primary
+                                          : theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                      foregroundColor: isPresent
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                      child: Text(
+                                        saint.name.isNotEmpty
+                                            ? saint.name[0].toUpperCase()
+                                            : '?',
+                                      ),
                                     ),
                                     value: isPresent,
                                     activeColor: theme.colorScheme.primary,
@@ -416,12 +441,17 @@ class _MeetingEditPageState extends State<MeetingEditPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.save_as_outlined, size: 64, color: theme.colorScheme.tertiary),
+                          Icon(
+                            Icons.save_as_outlined,
+                            size: 64,
+                            color: theme.colorScheme.tertiary,
+                          ),
                           const SizedBox(height: 16),
-                          Text('Please create the meeting first\nto manage attendance.', 
+                          Text(
+                            'Please create the meeting first\nto manage attendance.',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],

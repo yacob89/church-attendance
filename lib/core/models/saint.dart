@@ -1,3 +1,5 @@
+import 'tag.dart';
+
 class Saint {
   final int? id;
   final DateTime? createdAt;
@@ -9,6 +11,7 @@ class Saint {
   final String? meetingHall;
   final DateTime? birthdate;
   final String? note;
+  final List<Tag> tags;
 
   Saint({
     this.id,
@@ -21,9 +24,17 @@ class Saint {
     this.meetingHall,
     this.birthdate,
     this.note,
+    this.tags = const [],
   });
 
   factory Saint.fromJson(Map<String, dynamic> json) {
+    var tagsList = <Tag>[];
+    if (json['saints_tags'] != null) {
+      tagsList = (json['saints_tags'] as List)
+          .map((e) => Tag.fromJson(e['tags']))
+          .toList();
+    }
+
     return Saint(
       id: json['id'] as int?,
       createdAt: json['created_at'] != null
@@ -39,6 +50,7 @@ class Saint {
           ? DateTime.parse(json['birthdate'] as String)
           : null,
       note: json['note'] as String?,
+      tags: tagsList,
     );
   }
 

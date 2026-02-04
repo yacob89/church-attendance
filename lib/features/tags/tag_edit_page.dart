@@ -71,7 +71,7 @@ class _TagEditPageState extends State<TagEditPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.tag == null ? 'New Tag' : 'Edit Tag'),

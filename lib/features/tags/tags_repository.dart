@@ -7,7 +7,9 @@ class TagsRepository {
   Future<List<Tag>> getTags() async {
     final response = await _client.from('tags').select().order('name');
     final data = response as List<dynamic>;
-    return data.map((json) => Tag.fromJson(json)).toList();
+    final tags = data.map((json) => Tag.fromJson(json)).toList();
+    tags.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return tags;
   }
 
   Future<void> createTag(Tag tag) async {
